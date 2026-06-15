@@ -43,6 +43,15 @@ export interface UserInfo {
     updatedAt: string;
 }
 
+export interface UserSummary {
+    login: string;
+    avatarUrl: string;
+    name: string | null;
+    publicRepos: number;
+    followers: number;
+    htmlUrl: string;
+}
+
 export interface CommitInfo {
     sha: string;
 

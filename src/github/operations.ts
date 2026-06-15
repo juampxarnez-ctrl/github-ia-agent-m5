@@ -2,6 +2,7 @@ import { octokit } from "./client.js";
 import type {
     RepositoryInfo,
     UserInfo,
+    UserSummary,
 } from "../types.js";
 
 export async function getRepository(
@@ -54,6 +55,24 @@ export async function getUser(
 
         createdAt: response.data.created_at,
         updatedAt: response.data.updated_at,
+    };
+}
+
+export async function getUserSummary(
+    username: string
+): Promise<UserSummary> {
+
+    const response = await octokit.users.getByUsername({
+        username,
+    });
+
+    return {
+        login: response.data.login,
+        avatarUrl: response.data.avatar_url,
+        name: response.data.name,
+        publicRepos: response.data.public_repos,
+        followers: response.data.followers,
+        htmlUrl: response.data.html_url,
     };
 }
 

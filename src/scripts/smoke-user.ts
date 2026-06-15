@@ -1,9 +1,21 @@
-import { getUser } from "../github/operations.js";
+import {
+    getUser,
+    getUserSummary,
+} from "../github/operations.js";
 
 async function main() {
-    const user = await getUser("torvalds");
 
-    console.log("Usuario Obtenido:", user);
+    console.log("=== USER INFO ===");
+
+    const user = await getUser("sritasugar");
+
+    console.log(user);
+
+    console.log("=== USER SUMMARY ===");
+
+    const summary = await getUserSummary("juampxarnez-ctrl");
+
+    console.log(summary);
 }
 
 main();
