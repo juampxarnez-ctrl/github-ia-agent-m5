@@ -3,8 +3,11 @@ import type {
     RepositoryInfo,
     UserInfo,
     UserSummary,
+    CommitInfo,
+    CommitSummary,
 } from "../types.js";
 
+// repositories
 export async function getRepository(
     owner: string,
     repo: string
@@ -27,6 +30,7 @@ export async function getRepository(
     };
 }
 
+// users-info-summary
 export async function getUser(
     username: string
 ): Promise<UserInfo> {
@@ -77,12 +81,56 @@ export async function getUserSummary(
 }
 
 
+// commits-info-summary
 
+export async function getRepositoryCommits(
+    owner: string,
+    repo: string
+): Promise<CommitSummary[]> {
 
+    const response = await octokit.repos.listCommits({
+        owner,
+        repo,
+        per_page: 10,
+    });
 
+    return response.data.map(commit => ({
+        sha: commit.sha,
 
+        message: commit.commit.message,
 
+        author: commit.commit.author?.name ?? "Unknown",
 
+        date: commit.commit.author?.date ?? "",
+    }));
+}
+
+export async function getCommit(
+    owner: string,
+    repo: string,
+    sha: string
+): Promise<CommitInfo> {
+
+    const response = await octokit.repos.getCommit({
+        owner,
+        repo,
+        ref: sha,
+    });
+
+    return {
+        sha: response.data.sha,
+
+        message: response.data.commit.message,
+
+        author: {
+            name: response.data.commit.author?.name ?? null,
+            email: response.data.commit.author?.email ?? null,
+            date: response.data.commit.author?.date ?? "",
+        },
+
+        url: response.data.html_url,
+    };
+}
 
 
 

@@ -18,6 +18,7 @@
   "scripts": {
     "smoke": "tsx src/scripts/smoke.ts",
     "smoke:user": "tsx src/scripts/smoke-user.ts",
+    "smoke:commits": "tsx src/scripts/smoke-commits.ts",
     "demo": "tsx src/scripts/demo-tools.ts",
     "build": "tsc"
   },
