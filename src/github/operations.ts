@@ -7,6 +7,8 @@ import type {
     CommitSummary,
     IssueSummary,
     IssueInfo,
+    PullRequestSummary,
+    PullRequestInfo,
 } from "../types.js";
 
 // repositories
@@ -189,8 +191,58 @@ export async function getRepositoryIssues(
     }));
 }
 
+// Pull requests-info-summary
 
+export async function getRepositoryPullRequests(
+    owner: string,
+    repo: string
+): Promise<PullRequestSummary[]> {
 
+    const response = await octokit.pulls.list({
+        owner,
+        repo,
+        state: "all",
+        per_page: 10,
+    });
+
+    return response.data.map(pr => ({
+        number: pr.number,
+        title: pr.title,
+        state: pr.state as "open" | "closed",
+        url: pr.html_url,
+    }));
+}
+
+export async function getPullRequest(
+    owner: string,
+    repo: string,
+    pullNumber: number
+): Promise<PullRequestInfo> {
+
+    const response = await octokit.pulls.get({
+        owner,
+        repo,
+        pull_number: pullNumber,
+    });
+
+    return {
+        number: response.data.number,
+
+        title: response.data.title,
+
+        body: response.data.body ?? null,
+
+        state: response.data.state as "open" | "closed",
+
+        author: response.data.user?.login ?? "unknown",
+
+        createdAt: response.data.created_at,
+
+        updatedAt: response.data.updated_at,
+
+        url: response.data.html_url,
+    };
+}
 
 
 

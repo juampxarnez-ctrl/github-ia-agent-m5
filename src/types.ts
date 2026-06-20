@@ -103,7 +103,7 @@ export interface PullRequestInfo {
 
     body: string | null;
 
-    state: "open" | "closed" | "merged";
+    state: "open" | "closed";
 
     author: string;
 
@@ -116,7 +116,7 @@ export interface PullRequestInfo {
 export interface PullRequestSummary {
     number: number;
     title: string;
-    state: "open" | "closed" | "merged";
+    state: "open" | "closed";
     url: string;
 }
 export type ErrorCode =
