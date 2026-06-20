@@ -1,28 +1,15 @@
-import {
-    getRepositoryCommits,
-    getCommit
-} from "../github/operations.js";
+import { getRepositoryIssues } from "../github/operations.js";
+
 async function main() {
 
-    const commits = await getRepositoryCommits(
+    const issues = await getRepositoryIssues(
         "facebook",
         "react"
     );
 
-    const firstCommit = commits[0];
+    console.log("=== ISSUES SUMMARY ===");
+    console.log(issues);
 
-    console.log("=== COMMIT SUMMARY ===");
-    console.log(firstCommit);
-
-    console.log("\n=== COMMIT INFO ===");
-
-    const detail = await getCommit(
-        "facebook",
-        "react",
-        firstCommit.sha
-    );
-
-    console.log(detail);
 }
 
 main();

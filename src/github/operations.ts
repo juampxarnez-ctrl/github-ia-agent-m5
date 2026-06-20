@@ -5,6 +5,8 @@ import type {
     UserSummary,
     CommitInfo,
     CommitSummary,
+    IssueSummary,
+    IssueInfo,
 } from "../types.js";
 
 // repositories
@@ -133,6 +135,59 @@ export async function getCommit(
 }
 
 
+
+// issues-info-summary
+
+export async function getIssue(
+    owner: string,
+    repo: string,
+    issueNumber: number
+): Promise<IssueInfo> {
+
+    const response = await octokit.issues.get({
+        owner,
+        repo,
+        issue_number: issueNumber,
+    });
+
+    return {
+        number: response.data.number,
+
+        title: response.data.title,
+
+        body: response.data.body ?? null,
+
+        state: response.data.state as "open" | "closed",
+
+        author: response.data.user?.login ?? "unknown",
+
+        createdAt: response.data.created_at,
+
+        updatedAt: response.data.updated_at,
+
+        url: response.data.html_url,
+    };
+}
+
+export async function getRepositoryIssues(
+    owner: string,
+    repo: string
+): Promise<IssueSummary[]> {
+
+    const response = await octokit.issues.listForRepo({
+        owner,
+        repo,
+        per_page: 10,
+        state: "all",
+    });
+
+    return response.data.map(issue => ({
+        number: issue.number,
+        title: issue.title,
+        state: issue.state as "open" | "closed",
+        url: issue.html_url,
+    }));
+}
 
 
 
