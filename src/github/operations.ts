@@ -1,6 +1,7 @@
 import { octokit } from "./client.js";
 import type {
     RepositoryInfo,
+    RepoSummary,
     UserInfo,
     UserSummary,
     CommitInfo,
@@ -33,6 +34,29 @@ export async function getRepository(
         updatedAt: response.data.updated_at,
     };
 }
+
+// create repository
+export async function createRepository(input: {
+    name: string;
+    description?: string;
+    private?: boolean;
+}): Promise<RepoSummary> {
+    const response = await octokit.repos.createForAuthenticatedUser({
+        name: input.name,
+        description: input.description,
+        private: input.private,
+    });
+
+    return {
+        id: response.data.id,
+        fullName: response.data.full_name,
+        description: response.data.description,
+        stars: response.data.stargazers_count,
+        defaultBranch: response.data.default_branch,
+        url: response.data.html_url,
+    };
+}
+
 
 // users-info-summary
 export async function getUser(
