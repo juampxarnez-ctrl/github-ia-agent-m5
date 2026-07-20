@@ -3,6 +3,8 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 import { listRepositoriesHandler } from "./handlers/list-repositories.handler.js";
 import { createRepositoryHandler } from "./handlers/create-repository.handler.js";
+import { createCommitHandler } from "./handlers/create-commit.handler.js";
+import { listIssuesHandler } from "./handlers/list-issues.handler.js";
 import { createIssueHandler } from "./handlers/create-issue.handler.js";
 import { AppError } from "./errors/app-errors.js";
 
@@ -116,6 +118,73 @@ server.registerTool(
                     {
                         type: "text",
                         text: `Issue #${issue.number} creado: ${issue.title}\nURL: ${issue.url}`,
+                    },
+                ],
+            };
+        } catch (err) {
+            const message = err instanceof AppError ? err.message : "Error inesperado.";
+            return {
+                content: [{ type: "text", text: `Error: ${message}` }],
+                isError: true,
+            };
+        }
+    }
+);
+
+// Tool: listar issues de un repositorio.
+server.registerTool(
+    "list_issues",
+    {
+        description:
+            "Lista los issues de un repositorio de GitHub. Por defecto muestra los abiertos. Usar cuando el usuario quiere ver el backlog o los issues de un repo. Requiere owner y repo.",
+        inputSchema: {
+            owner: z.string().describe("Dueño del repositorio"),
+            repo: z.string().describe("Nombre del repositorio"),
+            state: z.enum(["open", "closed", "all"]).optional().describe("Filtrar por estado (default: open)"),
+        },
+    },
+    async (args) => {
+        try {
+            const issues = await listIssuesHandler(args);
+            const text = issues.length
+                ? issues.map((i: any) => `- #${i.number} [${i.state}] ${i.title} (${i.url})`).join("\n")
+                : "No se encontraron issues.";
+            return {
+                content: [{ type: "text", text: `Issues (${issues.length}):\n${text}` }],
+            };
+        } catch (err) {
+            const message = err instanceof AppError ? err.message : "Error inesperado.";
+            return {
+                content: [{ type: "text", text: `Error: ${message}` }],
+                isError: true,
+            };
+        }
+    }
+);
+
+// Tool: crear un commit agregando o modificando un archivo.
+server.registerTool(
+    "create_commit",
+    {
+        description:
+            "Crea un commit agregando o modificando un archivo en un repositorio de GitHub. Usar cuando el usuario quiere agregar/editar un archivo y commitear el cambio. Requiere owner, repo, path del archivo, contenido y mensaje de commit.",
+        inputSchema: {
+            owner: z.string().describe("Dueño del repositorio"),
+            repo: z.string().describe("Nombre del repositorio"),
+            branch: z.string().optional().describe("Rama destino (default: main)"),
+            path: z.string().describe("Ruta del archivo dentro del repo, ej: docs/README.md"),
+            content: z.string().describe("Contenido del archivo en texto plano"),
+            message: z.string().describe("Mensaje del commit"),
+        },
+    },
+    async (args) => {
+        try {
+            const result = await createCommitHandler(args);
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: `Commit creado: ${result.commitSha}\nURL: ${result.commitUrl}`,
                     },
                 ],
             };

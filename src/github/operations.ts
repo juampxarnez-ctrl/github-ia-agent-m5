@@ -197,14 +197,15 @@ export async function getIssue(
 
 export async function getRepositoryIssues(
     owner: string,
-    repo: string
+    repo: string,
+    state: "open" | "closed" | "all" = "open"
 ): Promise<IssueSummary[]> {
 
     const response = await octokit.issues.listForRepo({
         owner,
         repo,
         per_page: 10,
-        state: "all",
+        state,
     });
 
     return response.data.map(issue => ({
@@ -309,6 +310,79 @@ export async function createIssue(input: {
         title: response.data.title,
         state: response.data.state as "open" | "closed",
         url: response.data.html_url,
+    };
+}
+
+// create commit (agrega o modifica un archivo con el flujo de 6 pasos de Git)
+export async function createCommit(input: {
+    owner: string;
+    repo: string;
+    branch: string;
+    path: string;
+    content: string;
+    message: string;
+}): Promise<{ commitSha: string; commitUrl: string }> {
+    const { owner, repo, branch, path, content, message } = input;
+
+    // 1. Obtener la ref de la rama.
+    const refResp = await octokit.git.getRef({
+        owner,
+        repo,
+        ref: `heads/${branch}`,
+    });
+    const baseCommitSha = refResp.data.object.sha;
+
+    // 2. Obtener el tree base desde el commit actual.
+    const baseCommit = await octokit.git.getCommit({
+        owner,
+        repo,
+        commit_sha: baseCommitSha,
+    });
+    const baseTreeSha = baseCommit.data.tree.sha;
+
+    // 3. Crear un blob con el contenido del archivo.
+    const blob = await octokit.git.createBlob({
+        owner,
+        repo,
+        content: Buffer.from(content, "utf8").toString("base64"),
+        encoding: "base64",
+    });
+
+    // 4. Crear un nuevo tree que incluya el blob.
+    const newTree = await octokit.git.createTree({
+        owner,
+        repo,
+        base_tree: baseTreeSha,
+        tree: [
+            {
+                path,
+                mode: "100644",
+                type: "blob",
+                sha: blob.data.sha,
+            },
+        ],
+    });
+
+    // 5. Crear el commit apuntando al nuevo tree.
+    const newCommit = await octokit.git.createCommit({
+        owner,
+        repo,
+        message,
+        tree: newTree.data.sha,
+        parents: [baseCommitSha],
+    });
+
+    // 6. Actualizar la ref de la rama al nuevo commit.
+    await octokit.git.updateRef({
+        owner,
+        repo,
+        ref: `heads/${branch}`,
+        sha: newCommit.data.sha,
+    });
+
+    return {
+        commitSha: newCommit.data.sha,
+        commitUrl: `https://github.com/${owner}/${repo}/commit/${newCommit.data.sha}`,
     };
 }
 
