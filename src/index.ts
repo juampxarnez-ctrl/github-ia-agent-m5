@@ -201,8 +201,7 @@ server.registerTool(
 async function main() {
     const transport = new StdioServerTransport();
     await server.connect(transport);
-    // OJO: log SIEMPRE a stderr, nunca a stdout (stdout es el canal del protocolo).
-    console.error("[mcp] github-ia-agent v1.0.0 iniciado por stdio");
+
 }
 
 main().catch((err) => {

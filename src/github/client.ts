@@ -1,9 +1,7 @@
 import { Octokit } from "@octokit/rest";
-import dotenv from "dotenv";
+import { env } from "../config/env.js";
 
-dotenv.config();
-
-const token = process.env.GITHUB_TOKEN;
+const token = env.githubToken;
 
 if (!token) {
     throw new Error("GITHUB_TOKEN no encontrado");
