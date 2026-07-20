@@ -268,6 +268,27 @@ export async function getPullRequest(
     };
 }
 
+// list repositories (del usuario autenticado)
+export async function listRepositories(input: {
+    visibility?: "all" | "public" | "private";
+    sort?: "created" | "updated" | "pushed" | "full_name";
+    per_page?: number;
+}): Promise<RepoSummary[]> {
+    const response = await octokit.repos.listForAuthenticatedUser({
+        visibility: input.visibility ?? "all",
+        sort: input.sort ?? "updated",
+        per_page: input.per_page ?? 30,
+    });
+
+    return response.data.map((repo) => ({
+        id: repo.id,
+        fullName: repo.full_name,
+        description: repo.description,
+        stars: repo.stargazers_count,
+        defaultBranch: repo.default_branch,
+        url: repo.html_url,
+    }));
+}
 
 
 
