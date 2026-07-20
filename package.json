@@ -25,6 +25,8 @@
     "smoke:schema": "tsx src/scripts/smoke-schema.ts",
     "smoke:handler": "tsx src/scripts/smoke-handler.ts",
     "demo": "tsx src/scripts/demo-tools.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "build": "tsc"
   },
   "keywords": [],
