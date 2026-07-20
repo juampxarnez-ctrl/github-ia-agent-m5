@@ -290,6 +290,28 @@ export async function listRepositories(input: {
     }));
 }
 
+// create issue
+export async function createIssue(input: {
+    owner: string;
+    repo: string;
+    title: string;
+    body?: string;
+}): Promise<IssueSummary> {
+    const response = await octokit.issues.create({
+        owner: input.owner,
+        repo: input.repo,
+        title: input.title,
+        body: input.body,
+    });
+
+    return {
+        number: response.data.number,
+        title: response.data.title,
+        state: response.data.state as "open" | "closed",
+        url: response.data.html_url,
+    };
+}
+
 
 
 

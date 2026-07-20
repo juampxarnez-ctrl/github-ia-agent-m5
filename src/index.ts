@@ -3,6 +3,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 import { listRepositoriesHandler } from "./handlers/list-repositories.handler.js";
 import { createRepositoryHandler } from "./handlers/create-repository.handler.js";
+import { createIssueHandler } from "./handlers/create-issue.handler.js";
 import { AppError } from "./errors/app-errors.js";
 
 const server = new McpServer({
@@ -83,6 +84,40 @@ server.registerTool(
                 : "No se encontraron repositorios.";
             return {
                 content: [{ type: "text", text: `Repositorios (${repos.length}):\n${text}` }],
+            };
+        } catch (err) {
+            const message = err instanceof AppError ? err.message : "Error inesperado.";
+            return {
+                content: [{ type: "text", text: `Error: ${message}` }],
+                isError: true,
+            };
+        }
+    }
+);
+
+// Tool: crear un issue en un repositorio.
+server.registerTool(
+    "create_issue",
+    {
+        description:
+            "Crea un nuevo issue en un repositorio de GitHub. Usar cuando el usuario quiere abrir un issue, reportar un bug o registrar una tarea. Requiere owner, repo y título.",
+        inputSchema: {
+            owner: z.string().describe("Dueño del repositorio (usuario u organización)"),
+            repo: z.string().describe("Nombre del repositorio"),
+            title: z.string().describe("Título del issue"),
+            body: z.string().optional().describe("Descripción/cuerpo del issue (opcional)"),
+        },
+    },
+    async (args) => {
+        try {
+            const issue = await createIssueHandler(args);
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: `Issue #${issue.number} creado: ${issue.title}\nURL: ${issue.url}`,
+                    },
+                ],
             };
         } catch (err) {
             const message = err instanceof AppError ? err.message : "Error inesperado.";
