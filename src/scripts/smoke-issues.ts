@@ -1,24 +1,18 @@
-import { getRepositoryIssues, getIssue } from "../github/operations.js";
+import { getRepositoryIssues } from "../github/operations.js";
 
 async function main() {
-    const issues = await getRepositoryIssues(
-        "facebook",
-        "react"
-    );
+    try {
+        console.log("Fetching issues for juampxarnez-ctrl/test-mcp-repo-1...");
+        const issues = await getRepositoryIssues(
+            "juampxarnez-ctrl",
+            "test-mcp-repo-1"
+        );
 
-    console.log("=== ISSUES SUMMARY ===");
-    console.log(issues);
-
-    const firstIssue = issues[0]
-
-    console.log("=== ISSUE INFO ===");
-    const details = await getIssue(
-        "facebook",
-        "react",
-        firstIssue.number
-    );
-
-    console.log(details);
+        console.log("=== ISSUES SUMMARY ===");
+        console.log(issues);
+    } catch (error) {
+        console.error("Error fetching issues:", error);
+    }
 }
 
 main();
