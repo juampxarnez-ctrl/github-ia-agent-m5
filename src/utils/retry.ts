@@ -1,5 +1,6 @@
 import { AppError } from "../errors/app-errors.js";
 import { mapGitHubError } from "../errors/map-github-error.js";
+import { logger } from "./logger.js";
 
 interface RetryOptions {
     maxRetries?: number;   // cuántos reintentos como máximo
@@ -36,9 +37,12 @@ export async function withRetry<T>(
             // Exponential backoff: 1s, 2s, 4s...
             const delay = baseDelayMs * Math.pow(2, attempt);
             // Log a stderr (nunca stdout, rompe el protocolo MCP).
-            console.error(
-                `[retry] Error recuperable (${appError.code}). Reintentando en ${delay}ms (intento ${attempt + 1}/${maxRetries})`
-            );
+            logger.warn("Error recuperable, reintentando", {
+                code: appError.code,
+                delayMs: delay,
+                attempt: attempt + 1,
+                maxRetries,
+            });
             await new Promise((resolve) => setTimeout(resolve, delay));
         }
     }
