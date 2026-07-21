@@ -1,4 +1,5 @@
 import { octokit } from "./client.js";
+import { withRetry } from "../utils/retry.js";
 import type {
     RepositoryInfo,
     RepoSummary,
@@ -41,11 +42,13 @@ export async function createRepository(input: {
     description?: string;
     private?: boolean;
 }): Promise<RepoSummary> {
-    const response = await octokit.repos.createForAuthenticatedUser({
-        name: input.name,
-        description: input.description,
-        private: input.private,
-    });
+    const response = await withRetry(() =>
+        octokit.repos.createForAuthenticatedUser({
+            name: input.name,
+            description: input.description,
+            private: input.private,
+        })
+    );
 
     return {
         id: response.data.id,
@@ -201,12 +204,13 @@ export async function getRepositoryIssues(
     state: "open" | "closed" | "all" = "open"
 ): Promise<IssueSummary[]> {
 
-    const response = await octokit.issues.listForRepo({
-        owner,
-        repo,
-        per_page: 10,
-        state,
-    });
+    const response = await withRetry(() =>
+        octokit.issues.listForRepo({
+            owner,
+            repo,
+            per_page: 10,
+            state,
+        }));
 
     return response.data.map(issue => ({
         number: issue.number,
@@ -270,16 +274,19 @@ export async function getPullRequest(
 }
 
 // list repositories (del usuario autenticado)
+
 export async function listRepositories(input: {
     visibility?: "all" | "public" | "private";
     sort?: "created" | "updated" | "pushed" | "full_name";
     per_page?: number;
 }): Promise<RepoSummary[]> {
-    const response = await octokit.repos.listForAuthenticatedUser({
-        visibility: input.visibility ?? "all",
-        sort: input.sort ?? "updated",
-        per_page: input.per_page ?? 30,
-    });
+    const response = await withRetry(() =>
+        octokit.repos.listForAuthenticatedUser({
+            visibility: input.visibility ?? "all",
+            sort: input.sort ?? "updated",
+            per_page: input.per_page ?? 30,
+        })
+    );
 
     return response.data.map((repo) => ({
         id: repo.id,
@@ -298,12 +305,14 @@ export async function createIssue(input: {
     title: string;
     body?: string;
 }): Promise<IssueSummary> {
-    const response = await octokit.issues.create({
-        owner: input.owner,
-        repo: input.repo,
-        title: input.title,
-        body: input.body,
-    });
+    const response = await withRetry(() =>
+        octokit.issues.create({
+            owner: input.owner,
+            repo: input.repo,
+            title: input.title,
+            body: input.body,
+        })
+    );
 
     return {
         number: response.data.number,
