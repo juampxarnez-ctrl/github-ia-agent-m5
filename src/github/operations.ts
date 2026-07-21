@@ -395,7 +395,13 @@ export async function createCommit(input: {
     };
 }
 
-
-
+// health check: verifica que el token es válido y hay conexión con GitHub
+export async function healthCheck(): Promise<{ status: string; user: string }> {
+    const response = await withRetry(() => octokit.users.getAuthenticated());
+    return {
+        status: "ok",
+        user: response.data.login,
+    };
+}
 
 

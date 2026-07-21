@@ -7,6 +7,7 @@ import { createCommitHandler } from "./handlers/create-commit.handler.js";
 import { listIssuesHandler } from "./handlers/list-issues.handler.js";
 import { createIssueHandler } from "./handlers/create-issue.handler.js";
 import { AppError } from "./errors/app-errors.js";
+import { healthCheckHandler } from "./handlers/health-check.handler.js";
 
 const server = new McpServer({
     name: "github-ia-agent",
@@ -31,6 +32,35 @@ server.registerTool(
             },
         ],
     })
+);
+
+// Tool: health check — verifica conectividad y autenticación con GitHub.
+server.registerTool(
+    "health_check",
+    {
+        description:
+            "Verifica que el servidor puede conectarse a GitHub y que el token es válido. Devuelve el usuario autenticado si todo está OK. Usar para diagnosticar problemas de conexión o autenticación.",
+        inputSchema: {},
+    },
+    async () => {
+        try {
+            const result = await healthCheckHandler();
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: `Conexión OK. Autenticado como: ${result.user}`,
+                    },
+                ],
+            };
+        } catch (err) {
+            const message = err instanceof AppError ? err.message : "Error inesperado.";
+            return {
+                content: [{ type: "text", text: `Health check falló: ${message}` }],
+                isError: true,
+            };
+        }
+    }
 );
 
 // Tool: crear un repositorio en la cuenta autenticada.
